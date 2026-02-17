@@ -175,6 +175,64 @@ function MyComponent() {
 }
 ```
 
+## Deployment
+
+### Production Deployment
+
+The application is configured for deployment to:
+- **Frontend**: Vercel (Next.js)
+- **Backend**: Railway (GraphQL API + PostgreSQL + Redis)
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+### CI/CD Pipeline
+
+Automated workflows are configured via GitHub Actions:
+- **Continuous Integration**: Runs tests and linting on every push
+- **Continuous Deployment**: Automatic deployments to production
+  - Railway: Auto-deploys backend on push to `main`
+  - Vercel: Auto-deploys frontend on push to `main`
+  - Preview deployments for pull requests
+
+### Environment Variables
+
+**Backend (Railway)**:
+```bash
+NODE_ENV=production
+PORT=4000
+DATABASE_URL=<set by Railway>
+REDIS_URL=<set by Railway>
+```
+
+**Frontend (Vercel)**:
+```bash
+NEXT_PUBLIC_GRAPHQL_URL=https://your-backend-url.railway.app/graphql
+```
+
+## Testing
+
+### Run Tests
+```bash
+# Backend tests
+cd backend
+npm test
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+### Linting
+```bash
+# Backend linting
+cd backend
+npm run lint
+
+# Frontend linting
+cd frontend
+npm run lint
+```
+
 ## License
 
 MIT
