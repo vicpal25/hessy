@@ -1,0 +1,289 @@
+type User {
+  id: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  role: String!
+  createdAt: String!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  basePrice: Float!
+  category: String
+  status: String!
+  metadata: JSON
+  variants: [ProductVariant!]!
+  assets: [Asset!]!
+  createdAt: String!
+}
+
+type ProductVariant {
+  id: ID!
+  productId: ID!
+  sku: String!
+  name: String!
+  price: Float!
+  attributes: JSON
+  product: Product!
+  inventory: [Inventory!]!
+}
+
+type Inventory {
+  id: ID!
+  variantId: ID!
+  warehouseLocation: String
+  quantity: Int!
+  reservedQuantity: Int!
+  availableQuantity: Int!
+  updatedAt: String!
+}
+
+type Order {
+  id: ID!
+  userId: ID
+  status: String!
+  subtotal: Float!
+  tax: Float!
+  shipping: Float!
+  total: Float!
+  shippingAddress: JSON
+  billingAddress: JSON
+  items: [OrderItem!]!
+  payments: [Payment!]!
+  createdAt: String!
+}
+
+type OrderItem {
+  id: ID!
+  orderId: ID!
+  variantId: ID!
+  quantity: Int!
+  unitPrice: Float!
+  totalPrice: Float!
+  variant: ProductVariant!
+}
+
+type Payment {
+  id: ID!
+  orderId: ID!
+  gateway: String!
+  gatewayTransactionId: String
+  amount: Float!
+  currency: String!
+  status: String!
+  metadata: JSON
+  createdAt: String!
+}
+
+type Asset {
+  id: ID!
+  filename: String!
+  originalFilename: String!
+  mimeType: String!
+  sizeBytes: Int!
+  url: String!
+  altText: String
+  metadata: JSON
+  createdAt: String!
+}
+
+type Page {
+  id: ID!
+  type: String!
+  slug: String!
+  title: String!
+  content: JSON!
+  metadata: JSON
+  published: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AnalyticsEvent {
+  id: ID!
+  eventType: String!
+  userId: ID
+  sessionId: String
+  properties: JSON
+  createdAt: String!
+}
+
+type ABTest {
+  id: ID!
+  name: String!
+  description: String
+  variants: JSON!
+  status: String!
+  startDate: String
+  endDate: String
+  createdAt: String!
+}
+
+type ABTestAssignment {
+  id: ID!
+  testId: ID!
+  userId: ID
+  sessionId: String
+  variantKey: String!
+  assignedAt: String!
+}
+
+scalar JSON
+
+type Query {
+  # Products
+  products(category: String, status: String, limit: Int, offset: Int): [Product!]!
+  product(id: ID, slug: String): Product
+  
+  # Inventory
+  inventory(variantId: ID!): [Inventory!]!
+  checkAvailability(variantId: ID!, quantity: Int!): Boolean!
+  
+  # Orders
+  orders(userId: ID, status: String, limit: Int, offset: Int): [Order!]!
+  order(id: ID!): Order
+  
+  # Pages (CMS)
+  pages(type: String, published: Boolean): [Page!]!
+  page(id: ID, slug: String): Page
+  
+  # Analytics
+  analyticsEvents(eventType: String, userId: ID, startDate: String, endDate: String): [AnalyticsEvent!]!
+  analyticsReport(eventType: String, groupBy: String, startDate: String, endDate: String): JSON
+  
+  # A/B Testing
+  abTests(status: String): [ABTest!]!
+  abTest(id: ID!): ABTest
+  getVariant(testId: ID!, userId: ID, sessionId: String): JSON
+  
+  # Users
+  me: User
+  user(id: ID!): User
+}
+
+type Mutation {
+  # Authentication
+  register(email: String!, password: String!, firstName: String, lastName: String): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+  
+  # Products
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: ID!): Boolean!
+  
+  # Inventory
+  updateInventory(variantId: ID!, warehouseLocation: String, quantity: Int!): Inventory!
+  reserveInventory(variantId: ID!, quantity: Int!): Boolean!
+  releaseInventory(variantId: ID!, quantity: Int!): Boolean!
+  
+  # Orders
+  createOrder(input: CreateOrderInput!): Order!
+  updateOrderStatus(id: ID!, status: String!): Order!
+  
+  # Payments
+  createPaymentIntent(orderId: ID!, gateway: String!): PaymentIntent!
+  confirmPayment(paymentId: ID!, gatewayTransactionId: String!): Payment!
+  
+  # Assets
+  uploadAsset(file: Upload!): Asset!
+  deleteAsset(id: ID!): Boolean!
+  
+  # Pages (CMS)
+  createPage(input: CreatePageInput!): Page!
+  updatePage(id: ID!, input: UpdatePageInput!): Page!
+  deletePage(id: ID!): Boolean!
+  publishPage(id: ID!): Page!
+  
+  # Analytics
+  trackEvent(input: TrackEventInput!): AnalyticsEvent!
+  
+  # A/B Testing
+  createABTest(input: CreateABTestInput!): ABTest!
+  updateABTest(id: ID!, input: UpdateABTestInput!): ABTest!
+  startABTest(id: ID!): ABTest!
+  stopABTest(id: ID!): ABTest!
+}
+
+# Input Types
+input CreateProductInput {
+  name: String!
+  slug: String!
+  description: String
+  basePrice: Float!
+  category: String
+  status: String
+  metadata: JSON
+}
+
+input UpdateProductInput {
+  name: String
+  slug: String
+  description: String
+  basePrice: Float
+  category: String
+  status: String
+  metadata: JSON
+}
+
+input CreateOrderInput {
+  userId: ID
+  items: [OrderItemInput!]!
+  shippingAddress: JSON!
+  billingAddress: JSON
+}
+
+input OrderItemInput {
+  variantId: ID!
+  quantity: Int!
+}
+
+input CreatePageInput {
+  type: String!
+  slug: String!
+  title: String!
+  content: JSON!
+  metadata: JSON
+}
+
+input UpdatePageInput {
+  title: String
+  content: JSON
+  metadata: JSON
+}
+
+input TrackEventInput {
+  eventType: String!
+  userId: ID
+  sessionId: String
+  properties: JSON
+}
+
+input CreateABTestInput {
+  name: String!
+  description: String
+  variants: JSON!
+}
+
+input UpdateABTestInput {
+  name: String
+  description: String
+  variants: JSON
+  status: String
+}
+
+# Response Types
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type PaymentIntent {
+  clientSecret: String!
+  paymentId: ID!
+}
+
+scalar Upload
