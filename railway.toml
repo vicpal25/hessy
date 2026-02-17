@@ -3,9 +3,10 @@
 
 [build]
 builder = "NIXPACKS"
+watchPaths = ["backend/**"]
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "cd backend && npm run start"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
